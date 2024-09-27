@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.semiprj.mapper.StudyRoomMapper">
+
+    <!-- ResultMap for StudyRoomVO -->
+    <resultMap id="RoomVOResultMap" type="com.semiprj.model.StudyRoomVO">
+        <id property="roomId" column="room_id" />
+        <result property="roomName" column="room_name" />
+        <result property="roomDescription" column="room_description" />
+        <result property="roomDate" column="room_date" />
+        <result property="userCount" column="user_count" />
+        <result property="maxUserCount" column="max_user_count" />
+        <result property="roomPwd" column="room_pwd" />
+        <result property="userNickname" column="user_nickname" />
+        <!-- Assume UserVO is properly mapped elsewhere -->
+        <!-- If not, you need to define another resultMap for UserVO -->
+        <collection property="userList" ofType="com.semiprj.model.UserVO">
+            <!-- Define UserVO mapping here if needed -->
+        </collection>
+    </resultMap>
+
+    <!-- Select all rooms -->
+    <select id="roomSelect" parameterType="com.semiprj.model.StudyRoomVO"
+            resultType="com.semiprj.model.StudyRoomVO">
+        SELECT *
+        FROM studyroom
+    </select>
+
+    <!-- Insert a new room -->
+    <insert id="roomInsert" parameterType="com.semiprj.model.StudyRoomVO">
+        <!-- Use the sequence to get the next value for roomId -->
+        INSERT INTO studyroom (room_Id, room_Name, room_Description, room_Date, user_Count, max_User_Count, room_Pwd, user_nickname)
+        VALUES (studyroom_seq.NEXTVAL, #{roomName}, #{roomDescription}, sysdate , #{userCount}, #{maxUserCount}, #{roomPwd}, #{userNickname})
+    </insert>
+
+    <!-- Update a room -->
+    <update id="roomUpdate" parameterType="com.semiprj.model.StudyRoomVO">
+        UPDATE studyroom
+        SET room_Name = #{roomName},
+            room_Description = #{roomDescription},
+            room_Date = sysdate,
+            user_Count = #{userCount},
+            max_User_Count = #{maxUserCount},
+            room_Pwd = #{roomPwd}
+        WHERE room_Id = #{roomId}
+    </update>
+
+    <!-- Delete a room -->
+    <delete id="roomDelete" parameterType="int">
+        DELETE FROM studyroom
+        WHERE room_Id = #{roomId}
+    </delete>
+
+    <!-- Find a room by ID -->
+    <select id="roomFindById" parameterType="int" resultType="com.semiprj.model.StudyRoomVO">
+        SELECT *
+        FROM studyroom
+        WHERE room_Id = #{roomId}
+    </select>
+</mapper>

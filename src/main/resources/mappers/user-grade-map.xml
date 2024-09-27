@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.semiprj.mapper.UserGradeMapper">
+
+    <!-- Result Map for UserGradeVO -->
+    <resultMap id="userGradeResultMap" type="com.semiprj.model.UserGradeVO">
+        <id property="gradeSeq" column="grade_seq"/>
+        <result property="quizSeq" column="quiz_seq"/>
+        <result property="userNickname" column="user_nickname"/>
+        <result property="score" column="score"/>
+        <result property="totalQuestions" column="total_questions"/> <!-- Add this line -->
+        <result property="submitDate" column="submit_date"/>
+    </resultMap>
+
+    <!-- Insert User Grade -->
+    <insert id="insertUserGrade" parameterType="com.semiprj.model.UserGradeVO" useGeneratedKeys="true" keyProperty="gradeSeq">
+        <selectKey keyProperty="gradeSeq" resultType="int" order="BEFORE">
+            SELECT grade_sequence.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO user_grade (grade_seq, quiz_seq, user_nickname, score, total_questions, submit_date) <!-- Add total_questions -->
+        VALUES (#{gradeSeq}, #{quizSeq}, #{userNickname,jdbcType=VARCHAR}, #{score}, #{totalQuestions}, SYSDATE)
+    </insert>
+
+    <!-- Get the latest user grade -->
+    <select id="getLatestUserGrade" parameterType="map" resultMap="userGradeResultMap">
+        SELECT * FROM (
+        SELECT grade_seq, quiz_seq, user_nickname, score, total_questions, submit_date
+        FROM user_grade
+        WHERE quiz_seq = #{quizSeq} AND user_nickname = #{userNickname}
+        ORDER BY submit_date DESC
+        ) WHERE ROWNUM = 1
+    </select>
+
+    <!-- Get all user grades for a specific quiz and user -->
+    <select id="getUserGradesByQuizAndUser" parameterType="map" resultMap="userGradeResultMap">
+        SELECT grade_seq, quiz_seq, user_nickname, score, total_questions, submit_date
+        FROM user_grade
+        WHERE quiz_seq = #{quizSeq} AND user_nickname = #{userNickname}
+        ORDER BY submit_date DESC
+    </select>
+</mapper>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.semiprj.mapper.QuestionMapper">
+
+    <!-- Result Map for QuestionVO -->
+    <resultMap id="questionResultMap" type="com.semiprj.model.QuestionVO">
+        <id property="questionSeq" column="question_seq"/>
+        <result property="quizSeq" column="quiz_seq"/>
+        <result property="questionText" column="question_text"/>
+        <result property="correctAnswer" column="correct_answer"/>
+        <result property="choice1" column="choice1"/>
+        <result property="choice2" column="choice2"/>
+        <result property="choice3" column="choice3"/>
+        <result property="choice4" column="choice4"/>
+    </resultMap>
+
+    <!-- Insert Question -->
+    <insert id="insertQuestion" parameterType="com.semiprj.model.QuestionVO" useGeneratedKeys="true" keyProperty="questionSeq">
+        <selectKey keyProperty="questionSeq" resultType="int" order="BEFORE">
+            SELECT question_sequence.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO question (question_seq, quiz_seq, question_text, correct_answer, choice1, choice2, choice3, choice4)
+        VALUES (#{questionSeq}, #{quizSeq}, #{questionText}, #{correctAnswer}, #{choice1}, #{choice2}, #{choice3}, #{choice4})
+    </insert>
+
+    <select id="getQuestionsByQuizId" parameterType="int" resultMap="questionResultMap">
+        SELECT question_seq, quiz_seq, question_text, correct_answer, choice1, choice2, choice3, choice4
+        FROM question
+        WHERE quiz_seq = #{quizSeq}
+        ORDER BY question_seq
+    </select>
+
+    <update id="updateQuestion" parameterType="com.semiprj.model.QuestionVO">
+        UPDATE question
+        SET question_text = #{questionText},
+        correct_answer = #{correctAnswer},
+        choice1 = #{choice1},
+        choice2 = #{choice2},
+        choice3 = #{choice3},
+        choice4 = #{choice4}
+        WHERE question_seq = #{questionSeq} AND quiz_seq = #{quizSeq}
+    </update>
+
+    <delete id="deleteQuestion" parameterType="int">
+        DELETE FROM question WHERE question_seq = #{questionSeq}
+    </delete>
+
+
+
+</mapper>

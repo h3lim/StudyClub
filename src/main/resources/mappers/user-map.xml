@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.semiprj.mapper.UserMapper">
+
+	<!-- ResultMap for USERS and USERS_OAUTH -->
+	<resultMap id="userResultMap" type="com.semiprj.model.UserVO">
+		<id property="userSeq" column="USER_SEQ" />
+		<result property="userEmail" column="USER_EMAIL" />
+		<result property="userPw" column="USER_PW" />
+		<result property="userNickname" column="USER_NICKNAME" />
+		<result property="userDate" column="USER_DATE" />
+		<result property="userProvider" column="USER_PROVIDER" />
+		<result property="userGubun" column="USER_GUBUN" />
+		<association property="userOauthVO" javaType="com.semiprj.model.UserOauthVO" resultMap="oauthResultMap"/>
+	</resultMap>
+	<resultMap id="oauthResultMap" type="com.semiprj.model.UserOauthVO">
+		<id property="userSeq" column="USER_SEQ" />
+		<result property="accessToken" column="USER_ACCESSTOKEN" />
+		<result property="refreshToken" column="USER_REFRESHTOKEN" />
+		<result property="updateDate" column="USER_UPDATEDATE" />
+	</resultMap>
+
+	<!-- 전체회원 조회 : SELECT * FROM users-->
+	<select id="allUser" parameterType="com.semiprj.model.UserVO" resultMap="userResultMap">
+		SELECT * FROM study_users
+	</select>
+
+	<!-- 일반유저 :: 이메일 변경 : UPDATE USERS SET USER_EMAIL=#{userEmail} WHERE USER_NICKNAME=#{userNickname} -->
+	<update id="updateEmail" parameterType="com.semiprj.model.UserVO">
+		UPDATE study_users SET USER_EMAIL=#{userEmail} WHERE USER_NICKNAME=#{userNickname}
+	</update>
+
+	<!-- 일반유저 :: 비밀번호 변경 : UPDATE USERS SET USER_PW=#{userPw} WHERE USER_EMAIL=#{userEmail} -->
+	<update id="updatePw" parameterType="com.semiprj.model.UserVO">
+		UPDATE study_users SET USER_PW=#{userPw} WHERE USER_EMAIL=#{userEmail}
+	</update>
+
+	<!-- 일반유저 :: 닉네임 변경 : UPDATE USERS SET USER_NICKNAME=#{userNickname} WHERE USER_EMAIL=#{userEmail} -->
+	<update id="updateNickname" parameterType="com.semiprj.model.UserVO">
+		UPDATE study_users SET USER_NICKNAME=#{userNickname} WHERE USER_EMAIL=#{userEmail}
+	</update>
+
+	<!-- 회원탈퇴 : DELETE FROM users WHERE user_seq = #{userSeq} -->
+	<delete id="userDelete" parameterType="int">
+		DELETE FROM study_users WHERE user_seq = #{userSeq}
+	</delete>
+
+	<!-- 일반회원 로그인 : SELECT * FROM USERS WHERE USER_EMAIL=#{userEmail} AND USER_PW=#{userPw}-->
+	<select id="formLogin" parameterType="com.semiprj.model.UserVO" resultMap="userResultMap">
+		SELECT * FROM study_users WHERE USER_EMAIL=#{userEmail} AND USER_PW=#{userPw}
+	</select>
+
+	<!-- 일반회원 회원가입
+	: INSERT INTO USERS (USER_SEQ, USER_EMAIL, USER_PW, USER_NICKNAME, USER_PROVIDER)
+		VALUES (user_seq.NEXTVAL, #{userEmail}, #{userPw}, #{userNickname}, #{userProvider})
+	-->
+	<insert id="formJoin" parameterType="com.semiprj.model.UserVO">
+		INSERT INTO study_users (USER_SEQ, USER_EMAIL, USER_PW, USER_NICKNAME, USER_PROVIDER)
+		VALUES (user_seq.NEXTVAL, #{userEmail}, #{userPw}, #{userNickname}, #{userProvider})
+	</insert>
+
+
+	<!-- OAuth :: 기존회원/신규회원 구분을 위한 DB조회 : SELECT * FROM USERS WHERE USER_EMAIL = #{userEmail, jdbcType=VARCHAR} -->
+	<select id="findUserByEmail" parameterType="String" resultMap="userResultMap">
+		SELECT * FROM study_users WHERE USER_EMAIL = #{userEmail, jdbcType=VARCHAR}
+	</select>
+
+	<!-- OAuth/일반유저 :: 신규회원 회원가입 시 회원정보 저장
+	: INSERT INTO USERS (USER_SEQ, USER_EMAIL, USER_NICKNAME, USER_PROVIDER)
+		VALUES (user_seq.NEXTVAL, #{userEmail, jdbcType=VARCHAR}, #{userNickname}, #{userProvider})
+	-->
+	<insert id="insertUser" parameterType="com.semiprj.model.UserOauthVO" useGeneratedKeys="true" keyProperty="userSeq" keyColumn="USER_SEQ">
+		INSERT INTO study_users (USER_SEQ, USER_EMAIL, USER_NICKNAME, USER_PROVIDER)
+		VALUES (user_seq.NEXTVAL, #{userEmail, jdbcType=VARCHAR}, #{userNickname}, #{userProvider})
+	</insert>
+
+	<!-- OAuth :: 신규회원 토큰저장
+	: INSERT INTO USERS_OAUTH (USER_SEQ, USER_ACCESSTOKEN, USER_REFRESHTOKEN, USER_UPDATEDATE)
+		VALUES (#{userSeq}, #{accessToken}, #{refreshToken}, #{updateDate})
+	-->
+	<insert id="insertUserOauth" parameterType="com.semiprj.model.UserOauthVO">
+		INSERT INTO STUDY_OAUTH (USER_SEQ, USER_ACCESSTOKEN, USER_REFRESHTOKEN, USER_UPDATEDATE)
+		VALUES (#{userSeq}, #{accessToken}, #{refreshToken}, #{updateDate})
+	</insert>
+
+	<!-- OAuth :: 기존회원:토큰갱신
+	: UPDATE USERS_OAUTH SET USER_ACCESSTOKEN = #{accessToken}, USER_REFRESHTOKEN = #{refreshToken}, USER_UPDATEDATE = CURRENT_TIMESTAMP
+		WHERE USER_SEQ = #{userSeq}
+	-->
+	<update id="updateUserOauth" parameterType="com.semiprj.model.UserOauthVO">
+		UPDATE STUDY_OAUTH SET USER_ACCESSTOKEN = #{accessToken}, USER_REFRESHTOKEN = #{refreshToken}, USER_UPDATEDATE = CURRENT_TIMESTAMP
+		WHERE USER_SEQ = #{userSeq}
+	</update>
+
+	<!-- OAuth :: 기존회원/신규회원 구분을 위한 DB조회 : SELECT * FROM USERS WHERE USER_NICKNAME = #{userNickname} -->
+	<select id="findUserByNickname" parameterType="String" resultMap="userResultMap">
+		SELECT * FROM study_users WHERE USER_NICKNAME = #{userNickname}
+	</select>
+
+</mapper>

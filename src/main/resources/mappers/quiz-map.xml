@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.semiprj.mapper.QuizMapper">
+
+    <!-- Result Map for QuizVO -->
+    <resultMap id="quizResultMap" type="com.semiprj.model.QuizVO">
+        <id property="quizSeq" column="quiz_seq"/>
+        <result property="userNickname" column="user_nickname"/>
+        <result property="quizTitle" column="quiz_title"/>
+        <result property="questionCnt" column="question_cnt"/>
+        <result property="status" column="status"/>
+    </resultMap>
+
+    <insert id="insertQuiz" parameterType="com.semiprj.model.QuizVO" useGeneratedKeys="true" keyProperty="quizSeq">
+        <selectKey keyProperty="quizSeq" resultType="int" order="BEFORE">
+            SELECT quiz_sequence.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO quiz (quiz_seq, user_nickname, quiz_title, question_cnt, status)
+        VALUES (#{quizSeq}, #{userNickname}, #{quizTitle}, #{questionCnt}, 'INCOMPLETE')
+    </insert>
+
+    <!-- Update status to COMPLETE -->
+    <update id="updateQuizStatusToComplete" parameterType="int">
+        UPDATE quiz SET status = 'COMPLETE' WHERE quiz_seq = #{quizSeq}
+    </update>
+
+    <select id="getQuizzesByUserNickname" parameterType="String" resultMap="quizResultMap">
+        SELECT * FROM quiz WHERE user_nickname = #{userNickname} AND status = 'COMPLETE'
+    </select>
+
+    <select id="getQuizById" parameterType="int" resultMap="quizResultMap">
+        SELECT * FROM quiz WHERE quiz_seq = #{quizSeq}
+    </select>
+
+
+    <update id="updateQuiz" parameterType="com.semiprj.model.QuizVO">
+        UPDATE quiz
+        SET quiz_title = #{quizTitle},
+        question_cnt = #{questionCnt}
+        WHERE quiz_seq = #{quizSeq} AND user_nickname = #{userNickname}
+    </update>
+
+    <delete id="deleteQuiz" parameterType="int">
+        DELETE FROM quiz WHERE quiz_seq = #{quizSeq}
+    </delete>
+
+
+</mapper>
+

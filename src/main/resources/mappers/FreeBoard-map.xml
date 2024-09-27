@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.semiprj.mapper.FreeBoardMapper">
+
+
+	<sql id="search">
+		<where>
+			<if test="condition == 'title'">
+				AND title LIKE '%' || #{keyword} || '%'
+			</if>
+			<if test="condition == 'writer'">
+				AND writer LIKE '%' || #{keyword} || '%'
+			</if>
+			<if test="condition == 'content'">
+				AND content LIKE '%' || #{keyword} || '%'
+			</if>
+			<if test="condition == 'titleContent'">
+				AND (title LIKE '%' || #{keyword} || '%'
+				OR content LIKE '%' || #{keyword} || '%')
+			</if>
+		</where>
+	</sql>
+	
+	
+
+
+	<insert id="regist"
+		parameterType="com.semiprj.model.FreeBoardVO">
+		<selectKey resultType="int" keyProperty="bno" order="BEFORE">
+			SELECT
+			FREEBOARD_SEQ.NEXTVAL AS bno FROM DUAL
+		</selectKey>
+		INSERT INTO freeboard (bno, title, writer, content)
+		VALUES (#{bno}, #{title}, #{writer}, #{content})
+	</insert>
+
+
+	<select id="getList"
+		resultType="com.semiprj.model.FreeBoardVO">
+		SELECT * FROM (
+		SELECT f.*,
+		(SELECT COUNT(*) FROM 
+		 freereply WHERE bno = f.bno) AS reply_cnt,
+		ROWNUM AS rnum
+		FROM freeboard f
+		<include refid="search" />
+		ORDER BY bno DESC
+		)
+		WHERE rnum BETWEEN #{startRow} AND #{endRow}
+	</select>
+
+
+	<select id="getTotal" resultType="int">
+		SELECT COUNT(*)
+		FROM freeboard
+		<include refid="search" />
+	</select>
+
+	<select id="getContent" resultType="board">
+		SELECT *
+		FROM freeboard
+		WHERE
+		bno = #{bno}
+	</select>
+
+	<update id="update">
+		UPDATE freeboard
+		SET title = #{title},
+		content =
+		#{content},
+		update_date = current_timestamp
+		WHERE bno = #{bno}
+	</update>
+
+	<delete id="delete">
+		DELETE FROM freeboard
+		WHERE bno = #{bno}
+	</delete>
+
+</mapper>
